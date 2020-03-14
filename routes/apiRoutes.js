@@ -1,71 +1,53 @@
 const fs = require("fs");
 
-const noteData = require("../db/db.json");
+// LOAD DATA
+const notesDb = require("../db/db.json");
+const db = "./db/db.json";
+
+// ROUTING
 
 module.exports = function(app) {
-  function writeToDB(notes) {
-    // Converts new JSON Array back to string
-    notes = JSON.stringify(notes);
-    console.log(notes);
-    // Writes String back to db.json
-    fs.writeFileSync("./db/db.json", notes, function(err) {
-      if (err) {
-        return console.log(err);
-      }
-    });
-  }
-
-  // GET method
+  // API GET Requests
+  // ----------------------------------------
   app.get("/api/notes", function(req, res) {
-    res.json(noteData);
+    res.json(notesDb);
   });
 
-  //POST method
+  app.get("/api/notes/:id", (req, res) => {
+    res.json(notesDb.id);
+  });
 
+  // API POST Requests
+  // ----------------------------------------
+  // Post to api/db
   app.post("/api/notes", function(req, res) {
-    // Set unique id to entry
-    if (noteData.length == 0) {
-      req.body.id = "0";
-    } else {
-      req.body.id = JSON.stringify(
-        JSON.parse(noteData[noteData.length - 1].id) + 1
-      );
-    }
+    // Create array to store notes from db + new note
+    const newNote = {
+      id: notesDb.length + 1,
+      title: req.body.title,
+      text: req.body.text
+    };
 
-    console.log("req.body.id: " + req.body.id);
-
-    // push body to JSON
-    noteData.push(req.body);
-
-    // note data to DB
-    writeToDB(noteData);
-    console.log(noteData);
-
-    // return note with JSON
-    res.json(req.body);
+    notesDb.push(newNote);
+    fs.writeFile(db, JSON.stringify(notesDb), () => {
+      console.log("There's a new note!");
+    });
+    res.json(newNote);
   });
 
-  // DELETE method
-
+  //Delete specific note
   app.delete("/api/notes/:id", function(req, res) {
-    // converts id to a string
-    let id = req.params.id.toString();
-    console.log(id);
+    const arrIndexNum = req.params.id - 1;
+    const db = "./db/db.json";
 
-    // filter notesArray for id
-    for (i = 0; i < noteData.length; i++) {
-      if (noteData[i].id == id) {
-        console.log("match!");
-        // respond deleted note
-        res.send(noteData[i]);
-
-        // Remove deleted note
-        noteData.splice(i, 1);
-        break;
-      }
+    notesDb.splice(arrIndexNum, 1);
+    for (let i = 0; i < notesDb.length; i++) {
+      notesDb[i].id = i + 1;
     }
-
-    // Write note data to DB
-    writeToDB(noteData);
+    fs.writeFile(db, JSON.stringify(notesDb), () => {
+      console.log("Deleted Note");
+    });
+    res.json(true);
+    res.json(notesDb);
   });
 };

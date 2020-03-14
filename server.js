@@ -1,20 +1,26 @@
+// DEPENDENCIES
 const express = require("express");
-const path = require("path");
+const bodyParser = require("body-parser");
 
+// EXPRESS CONFIGURATION
+
+// Tells node that we are creating an "express" server
 const app = express();
+
+// Sets an initial port.
 const PORT = process.env.PORT || 3000;
 
-app.use(express.urlencoded({ extended: true }));
+// Sets up the Express app to handle data parsing
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-
-//  js files
-require("./routes/apiRoutes")(app);
-require("./routes/htmlRoutes")(app);
-
-// use public folder
 app.use(express.static("public"));
 
-// listener
+// ROUTER
+require("./routes/apiRoutes.js")(app);
+require("./routes/htmlRoutes.js")(app);
+
+// LISTENER
+
 app.listen(PORT, function() {
-  console.log("App listening on PORT: " + PORT);
+  console.log("Server listening on: http://localhost:" + PORT);
 });
